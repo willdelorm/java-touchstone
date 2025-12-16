@@ -1,17 +1,17 @@
 import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.util.Scanner;
 
 public class BoulderingTracker {
+    private static Scanner input = new Scanner(System.in);
 
     public static void main(String[] args) throws Exception {
-        Scanner input = new Scanner(System.in);
-
         System.out.println("Welcome to Bouldering Tracker!");
 
         // Main menu loop
         while (true) {
             System.out.print("Enter a command ('help' to see options): ");
-            String inputRead = input.next().trim();
+            String inputRead = input.nextLine();
 
             if (inputRead.equals("quit")) {
                 break;
@@ -32,7 +32,24 @@ public class BoulderingTracker {
         input.close();
     }
 
-    private static void printSession() {
+    // Print session details
+    private static void printSession(ClimbingSession session) {
+        String output = "";
+        output += "Session Summary:\n";
+        output += "====================\n";
+        output += "Date: " + session.getDate().toString() + "\n";
+        output += "Duration: " + session.getDuration() + " minutes\n\n";
+        output += "List of problems sent:\n";
+
+        // Loop through problems and add each to the output
+        for (Problem problem : session.getProblems()) {
+            output += "V" + problem.getGrade() + "\n";
+        }
+
+        output += "====================\n";
+        output += "Total problems sent: " + session.getProblemCount();
+
+        System.out.println(output);
         // Function printSession()
         // Calculate grade total
         // Calculate grade average
@@ -45,47 +62,66 @@ public class BoulderingTracker {
 
     // Logs a new session
     private static void logSession() {
-        Scanner input = new Scanner(System.in);
-
         System.out.println("\n=== Log New Session ===");
 
         // Get session date
-        System.out.print("Enter session date (YYYY-MM-DD) or press Enter for today: ");
-        String inputDate = input.nextLine();
+        LocalDate sessionDate = null;
+        while (sessionDate == null) {
+            System.out.print("Enter session date (YYYY-MM-DD) or press Enter for today: ");
+            try {
+                String inputDate = input.nextLine();
 
-        LocalDate sessionDate;
-        if (inputDate.isEmpty()) {
-            sessionDate = LocalDate.now();
-        } else {
-            sessionDate = LocalDate.parse(inputDate);
+                if (inputDate.isEmpty()) {
+                    sessionDate = LocalDate.now();
+                } else {
+                    sessionDate = LocalDate.parse(inputDate);
+                }
+            } catch (DateTimeParseException ex) {
+                System.out.println("Wrong date format.");
+            }
         }
 
         // Get session duration
-        System.out.print("Enter session duration (minutes): ");
-        int inputDuration = input.nextInt();
+        int sessionDuration = -1;
+        while (sessionDuration == -1) {
+            System.out.print("Enter session duration (minutes): ");
+            try {
+                String inputDuration = input.nextLine();
+                sessionDuration = Integer.parseInt(inputDuration);
+            } catch (NumberFormatException ex) {
+                System.out.println("Not an integer.");
+            }
+        }
 
         // Create new session
-        ClimbingSession session = new ClimbingSession(sessionDate, inputDuration);
+        ClimbingSession session = new ClimbingSession(sessionDate, sessionDuration);
 
+        // Add problem grades to session
         while (true) {
-            System.out.print("Enter grade for problem (number only) or -1 to finish: ");
-            int inputGrade = input.nextInt();
+            try {
+                System.out.print("Enter V grade for problem (number only) or -1 to finish: ");
+                String inputGrade = input.nextLine();
+                int problemGrade = Integer.parseInt(inputGrade);
 
-            if (inputGrade == -1) {
-                break;
+                if (problemGrade == -1) {
+                    break;
+                } else if (problemGrade < 0) {
+                    System.out.println("Invalid number. Must be 0 or higher.");
+                } else {
+                    Problem newProblem = new Problem(problemGrade);
+                    session.addProblem(newProblem);
+                }
+            } catch (NumberFormatException ex) {
+                System.out.println("Not an integer.");
             }
-            // Else if grade is a number
-            // Add number to list
-            // Else
-            // Ask for valid input
         }
-        
-        // Save data to file
 
-        // Call function printSession() with data
+        // Write session to file
+
+        // Print session summary
+        printSession(session);
+
         // Ask user to press Enter to return to menu
-
-        input.close();
     }
 
     private static void view() {
