@@ -1,12 +1,42 @@
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.StandardOpenOption;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Scanner;
 
 public class BoulderingTracker {
     private static Scanner input = new Scanner(System.in);
+    private static File output = new File("output.txt");
 
     public static void main(String[] args) throws Exception {
         System.out.println("Welcome to Bouldering Tracker!");
+
+        // Load existing sessions
+        ArrayList<ClimbingSession> sessions = new ArrayList<ClimbingSession>();
+        try {
+            List<String> sessionsData = Files.readAllLines(output.toPath());
+            for (String data : sessionsData) {
+                String[] dataList = data.split(",");
+                String date = dataList[0];
+                String duration = dataList[1];
+                String[] grades = Arrays.copyOfRange(dataList, 2, dataList.length);
+
+                ClimbingSession tempSession = new ClimbingSession(LocalDate.parse(date), Integer.parseInt(duration));
+
+                for (String grade : grades) {
+                    tempSession.addProblem(new Problem(Integer.parseInt(grade)));
+                }
+
+                sessions.add(tempSession);
+            }
+        } catch (IOException ex) {
+            System.out.println("Error reading file: " + ex.getMessage());
+        }
 
         // Main menu loop
         while (true) {
@@ -30,34 +60,6 @@ public class BoulderingTracker {
         }
 
         input.close();
-    }
-
-    // Print session details
-    private static void printSession(ClimbingSession session) {
-        String output = "";
-        output += "Session Summary:\n";
-        output += "====================\n";
-        output += "Date: " + session.getDate().toString() + "\n";
-        output += "Duration: " + session.getDuration() + " minutes\n\n";
-        output += "List of problems sent:\n";
-
-        // Loop through problems and add each to the output
-        for (Problem problem : session.getProblems()) {
-            output += "V" + problem.getGrade() + "\n";
-        }
-
-        output += "====================\n";
-        output += "Total problems sent: " + session.getProblemCount();
-
-        System.out.println(output);
-        // Function printSession()
-        // Calculate grade total
-        // Calculate grade average
-        // Calculate highest grade
-
-        // Print date
-        // Print calculated values
-        // Print list of grades
     }
 
     // Logs a new session
@@ -117,11 +119,15 @@ public class BoulderingTracker {
         }
 
         // Write session to file
+        try {
+            Files.writeString(output.toPath(), session.toString(), StandardOpenOption.CREATE,
+                    StandardOpenOption.APPEND);
+        } catch (IOException ex) {
+            System.out.println("Error writing to file: " + ex.getMessage());
+        }
 
         // Print session summary
-        printSession(session);
-
-        // Ask user to press Enter to return to menu
+        System.out.println(session.printSummary());
     }
 
     private static void view() {
@@ -146,5 +152,4 @@ public class BoulderingTracker {
         // Print “Hardest grade sent”
         // Ask user to press Enter to return to menu
     }
-
 }

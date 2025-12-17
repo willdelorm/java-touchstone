@@ -40,22 +40,43 @@ public class ClimbingSession {
         return this.problems.size();
     }
 
-    // String method
-    public String toString() {
-        String output = "";
-        output += "Session Summary:\n";
+    // Display session summary
+    public String printSummary() {
+        String output = "Session Summary:\n";
         output += "====================\n";
-        output += "Date: " + this.date.toString() + "\n";
-        output += "Duration: " + this.duration + "\n\n";
-        output += "Climbs Sent\n";
+        output += "Date: " + this.getDate().toString() + "\n";
+        output += "Duration: " + this.getDuration() + " minutes\n\n";
+        output += "List of problems sent:\n";
 
         // Loop through problems and add each to the output
-        for (Problem problem : problems) {
-            output += "V" + problem.getGrade() + "\n";
+        for (Problem problem : this.getProblems()) {
+            output += "V" + problem.getGrade() + ", ";
         }
 
         output += "====================\n";
-        output += "Total problems sent: " + getProblemCount();
+        output += "Total problems sent: " + this.getProblemCount() + "\n";
+
+        
+        // Calculate grade total
+        // Calculate grade average
+        // Calculate highest grade
+        
+        // Print date
+        // Print calculated values
+        // Print list of grades
+        return output;
+    }
+
+    // String method for file save
+    public String toString() {
+        String output = this.date.toString() + "," + this.duration;
+
+        // Loop through problems and add each to the output
+        for (Problem problem : problems) {
+            output += "," + problem.getGrade();
+        }
+
+        output += "\n";
 
         return output;
     }
