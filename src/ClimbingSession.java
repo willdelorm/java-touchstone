@@ -7,19 +7,18 @@ public class ClimbingSession {
     private int duration;
     private ArrayList<Problem> problems;
 
-
     // Constructor takes the date and duration parameters
     public ClimbingSession(LocalDate date, int duration) {
         this.date = date;
         this.duration = duration;
         this.problems = new ArrayList<Problem>();
     }
-    
+
     // Method to add a problem
     public void addProblem(Problem problem) {
         problems.add(problem);
     }
-    
+
     // Get date method
     public LocalDate getDate() {
         return this.date;
@@ -56,14 +55,6 @@ public class ClimbingSession {
         output += "====================\n";
         output += "Total problems sent: " + this.getProblemCount() + "\n";
 
-        
-        // Calculate grade total
-        // Calculate grade average
-        // Calculate highest grade
-        
-        // Print date
-        // Print calculated values
-        // Print list of grades
         return output;
     }
 

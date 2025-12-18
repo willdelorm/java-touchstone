@@ -12,30 +12,34 @@ import java.util.Scanner;
 public class BoulderingTracker {
     private static Scanner input = new Scanner(System.in);
     private static File output = new File("output.txt");
+    private static ArrayList<ClimbingSession> sessions = new ArrayList<ClimbingSession>();
 
     public static void main(String[] args) throws Exception {
         System.out.println("Welcome to Bouldering Tracker!");
 
         // Load existing sessions
-        ArrayList<ClimbingSession> sessions = new ArrayList<ClimbingSession>();
-        try {
-            List<String> sessionsData = Files.readAllLines(output.toPath());
-            for (String data : sessionsData) {
-                String[] dataList = data.split(",");
-                String date = dataList[0];
-                String duration = dataList[1];
-                String[] grades = Arrays.copyOfRange(dataList, 2, dataList.length);
+        if (output.exists()) {
+            try {
+                List<String> sessionsData = Files.readAllLines(output.toPath());
+                for (String data : sessionsData) {
+                    String[] dataList = data.split(",");
+                    String date = dataList[0];
+                    String duration = dataList[1];
+                    String[] grades = Arrays.copyOfRange(dataList, 2, dataList.length);
 
-                ClimbingSession tempSession = new ClimbingSession(LocalDate.parse(date), Integer.parseInt(duration));
+                    ClimbingSession tempSession = new ClimbingSession(LocalDate.parse(date),
+                            Integer.parseInt(duration));
 
-                for (String grade : grades) {
-                    tempSession.addProblem(new Problem(Integer.parseInt(grade)));
+                    for (String grade : grades) {
+                        tempSession.addProblem(new Problem(Integer.parseInt(grade)));
+                    }
+
+                    sessions.add(tempSession);
                 }
 
-                sessions.add(tempSession);
+            } catch (IOException ex) {
+                System.out.println("Error reading file: " + ex.getMessage());
             }
-        } catch (IOException ex) {
-            System.out.println("Error reading file: " + ex.getMessage());
         }
 
         // Main menu loop
@@ -122,6 +126,7 @@ public class BoulderingTracker {
         try {
             Files.writeString(output.toPath(), session.toString(), StandardOpenOption.CREATE,
                     StandardOpenOption.APPEND);
+            sessions.add(session);
         } catch (IOException ex) {
             System.out.println("Error writing to file: " + ex.getMessage());
         }
@@ -130,26 +135,54 @@ public class BoulderingTracker {
         System.out.println(session.printSummary());
     }
 
+    // Print climber statistics
     private static void view() {
-        // Function view()
-        // Read data from file
-        // Set sessionCount = length of sessions list
-        // Set totalClimbs = 0
-        // Set hardestV = 0
+        // Checks for sessions before continuing
+        if (sessions.size() == 0) {
+            System.out.println("Log a session first.");
+            return;
+        }
 
-        // Loop thru each session
-        // Set totalV = 0
-        // Set climbCount = list length
-        // Add climbCount to totalClimbs
-        // Loop thru list
-        // Add grade to totalV
-        // If grade > hardestV
-        // hardestV = grade
-        // Set avgV = totalV / climbCount
+        int totalTime = 0, totalSends = 0, totalV = 0, maxV = 0;
+        ClimbingSession longestSession = null;
 
-        // Print “Statistics”
-        // Print “Total sessions logged” and “Total climbs logged”
-        // Print “Hardest grade sent”
-        // Ask user to press Enter to return to menu
+        // Loop through each session and update statistics
+        for (ClimbingSession session : sessions) {
+            int duration = session.getDuration();
+            totalTime += session.getDuration();
+            if (longestSession == null) {
+                longestSession = session;
+            } else if (duration > longestSession.getDuration()) {
+                longestSession = session;
+            }
+
+            totalSends += session.getProblemCount();
+
+            for (Problem problem : session.getProblems()) {
+                int grade = problem.getGrade();
+                if (grade > maxV)
+                    maxV = grade;
+                totalV += grade;
+            }
+        }
+
+        // Print all the statistics
+        System.out.println("=== Statistics ===");
+
+        System.out.println("\n-- Totals --");
+        System.out.println("Sessions logged: " + sessions.size());
+        System.out.println("Time climbing: " + totalTime + " minutes");
+        System.out.println("Boulders sent: " + totalSends);
+        System.out.println("V points: " + totalV);
+
+        System.out.println("\n-- Averages --");
+        System.out.println("Session length: " + totalTime / sessions.size() + " minutes");
+        System.out.println("Sends per session: " + totalSends / sessions.size());
+        System.out.println("Average V: " + totalV / totalSends);
+
+        System.out.println("\n-- Bests --");
+        System.out.println("Hardest grade sent: " + maxV);
+        System.out.println(
+                "Longest session: " + longestSession.getDate() + " for " + longestSession.getDuration() + " minutes");
     }
 }
